@@ -1,62 +1,83 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/stat.h>
 
-#define PATH "/sys/class/power_supply/battery/constant_charge_current_max"
-#define PERMISSION_CMD_SET "chmod 666 /sys/class/power_supply/battery/constant_charge_current_max"
-#define PERMISSION_CMD_RESTORE "chmod 444 /sys/class/power_supply/battery/constant_charge_current_max"
+#define SYSFS_PATH "/sys/class/power_supply/battery/constant_charge_current_max"
+#define INSTALL_PATH "/usr/local/bin/setcurrent"
+
+void print_help(const char *prog) {
+    printf("Usage: %s <current_mA>\n", prog);
+    printf("Example: %s 2000    # Set 2000 mA (2A)\n", prog);
+    printf("\nOptions:\n");
+    printf("  --help, -h        Show this help message\n");
+    printf("  --uninstall       Remove this tool from /usr/local/bin\n");
+}
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
-        printf("Usage: %s <current_mA>\n", argv[0]);
-        printf("Example: %s 2000  # for 2A (2000 mA)\n", argv[0]);
+        print_help(argv[0]);
         return 1;
     }
 
-    // Konversi miliampere (mA) ke mikroampere (uA)
-    int current_mA = atoi(argv[1]);
-    int current_uA = current_mA * 1000;  // 1 mA = 1000 uA
+    if (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0) {
+        print_help(argv[0]);
+        return 0;
+    }
 
-    // Set permission agar bisa write
-    if (system(PERMISSION_CMD_SET) != 0) {
-        perror("Failed to set permissions");
+    if (strcmp(argv[1], "--uninstall") == 0) {
+        if (remove(INSTALL_PATH) == 0) {
+            printf("Uninstalled successfully from %s\n", INSTALL_PATH);
+            return 0;
+        } else {
+            perror("Failed to uninstall");
+            return 1;
+        }
+    }
+
+    int mA = atoi(argv[1]);
+    if (mA <= 0) {
+        fprintf(stderr, "Invalid input. Please enter a positive current value in mA.\n");
         return 1;
     }
 
-    int fd = open(PATH, O_WRONLY);
-    if (fd < 0) {
+    int uA = mA * 1000;
+
+    // Save original permission
+    struct stat st;
+    if (stat(SYSFS_PATH, &st) != 0) {
+        perror("Failed to stat the sysfs file");
+        return 1;
+    }
+    mode_t original_mode = st.st_mode & 0777;
+
+    // Change permission to allow writing
+    if (chmod(SYSFS_PATH, 0666) != 0) {
+        perror("Failed to change permission");
+        return 1;
+    }
+
+    // Open and write to the sysfs file
+    FILE *fp = fopen(SYSFS_PATH, "w");
+    if (!fp) {
         perror("Failed to open file");
-        // Kembalikan permission jika gagal
-        system(PERMISSION_CMD_RESTORE);
+        chmod(SYSFS_PATH, original_mode);
         return 1;
     }
 
-    // Tulis nilai current sebagai string
-    char buffer[20];
-    snprintf(buffer, sizeof(buffer), "%d", current_uA);
-
-    // Menulis nilai ke sysfs (sebagai string)
-    if (write(fd, buffer, strlen(buffer)) < 0) {
+    if (fprintf(fp, "%d", uA) < 0) {
         perror("Failed to write current");
-        close(fd);
-        // Kembalikan permission jika gagal
-        system(PERMISSION_CMD_RESTORE);
+        fclose(fp);
+        chmod(SYSFS_PATH, original_mode);
         return 1;
     }
 
-    printf("Charging current set to %d mA (%d uA)\n", current_mA, current_uA);
+    fclose(fp);
 
-    close(fd);
+    // Restore original permission
+    chmod(SYSFS_PATH, original_mode);
 
-    // Kembalikan permission ke semula
-    if (system(PERMISSION_CMD_RESTORE) != 0) {
-        perror("Failed to restore permissions");
-        return 1;
-    }
-
-    printf("Permissions restored to read-only.\n");
-
+    printf("Charge current set to %d mA (%d uA)\n", mA, uA);
     return 0;
 }
