@@ -65,20 +65,26 @@ int main(int argc, char *argv[]) {
     int uA = mA * 1000;
 
     // Save original permission
+    print_timestamp(); printf("Trying to stat the sysfs file...\n");
     struct stat st;
     if (stat(SYSFS_PATH, &st) != 0) {
         print_timestamp(); perror("Failed to stat the sysfs file");
         return 1;
     }
+    print_timestamp(); printf("Success stat the sysfs file\n");
+    
     mode_t original_mode = st.st_mode & 0777;
-
+	
     // Change permission to allow writing
+    print_timestamp(); printf("Changing sysfs file permission...\n");
     if (chmod(SYSFS_PATH, 0666) != 0) {
         print_timestamp(); perror("Failed to change permission");
         return 1;
     }
+    print_timestamp(); printf("Success change permission\n");
 
     // Open and write to the sysfs file
+    print_timestamp(); printf("Reading sysfs file...\n");
     FILE *fp = fopen(SYSFS_PATH, "w");
     if (!fp) {
         print_timestamp(); perror("Failed to open file");
@@ -86,6 +92,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+	print_timestamp(); printf("Writing current into sysfs file...\n");
     if (fprintf(fp, "%d", uA) < 0) {
         print_timestamp(); perror("Failed to write current");
         fclose(fp);
