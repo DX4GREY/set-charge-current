@@ -18,8 +18,8 @@ void print_timestamp() {
 }
 
 void print_help(const char *prog) {
-    print_timestamp(); printf("Usage: %s <current_mA>\n", prog);
-    print_timestamp(); printf("Example: %s 2000    # Set 2000 mA (2A)\n", prog);
+    printf("Usage: %s <current_mA>\n", prog);
+    printf("Example: %s 2000    # Set 2000 mA (2A)\n", prog);
     printf("\nOptions:\n");
     printf("  --help, -h        Show this help message\n");
     printf("  --uninstall       Remove this tool from system path\n");
