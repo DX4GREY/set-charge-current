@@ -5,14 +5,24 @@
 #include <sys/stat.h>
 
 #define SYSFS_PATH "/sys/class/power_supply/battery/constant_charge_current_max"
-#define INSTALL_PATH "/usr/local/bin/setcurrent"
+#define INSTALL_PATH_LINUX "/usr/local/bin/setcurrent"
+#define INSTALL_PATH_TERMUX "/data/data/com.termux/files/usr/bin/setcurrent"
 
 void print_help(const char *prog) {
     printf("Usage: %s <current_mA>\n", prog);
     printf("Example: %s 2000    # Set 2000 mA (2A)\n", prog);
     printf("\nOptions:\n");
     printf("  --help, -h        Show this help message\n");
-    printf("  --uninstall       Remove this tool from /usr/local/bin\n");
+    printf("  --uninstall       Remove this tool from system path\n");
+}
+
+int is_termux() {
+    const char *prefix = getenv("PREFIX");
+    return (prefix && strstr(prefix, "com.termux"));
+}
+
+const char* get_install_path() {
+    return is_termux() ? INSTALL_PATH_TERMUX : INSTALL_PATH_LINUX;
 }
 
 int main(int argc, char *argv[]) {
@@ -27,8 +37,9 @@ int main(int argc, char *argv[]) {
     }
 
     if (strcmp(argv[1], "--uninstall") == 0) {
-        if (remove(INSTALL_PATH) == 0) {
-            printf("Uninstalled successfully from %s\n", INSTALL_PATH);
+        const char *path = get_install_path();
+        if (remove(path) == 0) {
+            printf("Uninstalled successfully from %s\n", path);
             return 0;
         } else {
             perror("Failed to uninstall");
