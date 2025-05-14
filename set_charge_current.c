@@ -5,6 +5,8 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <stdarg.h>
+#include <sys/types.h>
+#include <errno.h>
 
 #define SYSFS_PATH "/sys/class/power_supply/battery/constant_charge_current_max"
 #define INSTALL_PATH_LINUX "/usr/local/bin/setcurrent"
@@ -31,7 +33,7 @@ void tprintf(const char *fmt, ...) {
 // perror with timestamp
 void tperror(const char *msg) {
     print_timestamp();
-    perror(msg);
+    fprintf(stderr, "%s: %s\n", msg, strerror(errno));
 }
 
 void print_help(const char *prog) {
@@ -40,6 +42,7 @@ void print_help(const char *prog) {
     printf("\nOptions:\n");
     printf("  --help, -h        Show this help message\n");
     printf("  --uninstall       Remove this tool from system path\n");
+    printf("\nThis is a tool to change the charger current, \nsupports almost all androids.\n");
 }
 
 int is_termux() {
@@ -82,7 +85,7 @@ int main(int argc, char *argv[]) {
     int uA = mA * 1000;
 
     // Save original permission
-    tprintf("Trying to stat the sysfs file...\n");
+    tprintf("Trying to stat the sysfs file: %s...\n", SYSFS_PATH);
     struct stat st;
     if (stat(SYSFS_PATH, &st) != 0) {
         tperror("Failed to stat the sysfs file");
