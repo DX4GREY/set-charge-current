@@ -73,7 +73,7 @@ magisk_module: $(TARGET)
 	@sed -i 's/{author}/dx4white/' magisk_module/module.prop
 	@sed -i 's/{description}/A Magisk module to set charge current/' magisk_module/module.prop
 	@echo "  ZIP      magisk_module -> magisk_module.zip"
-	@zip -r magisk_module.zip magisk_module > /dev/null
+	@cd magisk_module && zip -r ../magisk_module.zip . > /dev/null
 	@echo "Magisk module built and zipped as magisk_module.zip"
 
 .PHONY: clean install uninstall run info magisk_module
