@@ -33,6 +33,12 @@ make install
 - Android (Termux): `~/../usr/bin`
 - Linux: `/usr/local/bin`
 
+### Optional: Create magisk module.
+```bash
+ make magisk_module
+```
+Select a predefined Magisk module template to create a custom module for Android devices. This allows seamless integration with Magisk for managing charging current settings. 
+
 ## Usage
 
 ```bash
