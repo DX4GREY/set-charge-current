@@ -16,7 +16,7 @@
 void print_timestamp() {
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
-    printf("[%02d:%02d %02d-%02d-%04d] ",
+    printf("[%02d:%02d | %02d-%02d-%04d] ",
         tm.tm_hour, tm.tm_min,
         tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900);
 }
