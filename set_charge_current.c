@@ -35,8 +35,8 @@ void tperror(const char *msg) {
 }
 
 void print_help(const char *prog) {
-    tprintf("Usage: %s <current_mA>\n", prog);
-    tprintf("Example: %s 2000    # Set 2000 mA (2A)\n", prog);
+    printf("Usage: %s <current_mA>\n", prog);
+    printf("Example: %s 2000    # Set 2000 mA (2A)\n", prog);
     printf("\nOptions:\n");
     printf("  --help, -h        Show this help message\n");
     printf("  --uninstall       Remove this tool from system path\n");
